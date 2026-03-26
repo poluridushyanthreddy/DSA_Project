@@ -28,10 +28,10 @@ class graph
     {
         for(int i=0;i<m;i++)
         {
-            int a,b,c;
+            char a,b;int c;
             cin>>a>>b>>c;
-            grh[a].push_back({b, c}); 
-            grh[b].push_back({a, c});
+            grh[a-65].push_back({b, c}); 
+            grh[b-65].push_back({a, c});
         }
     }
 };
@@ -43,7 +43,7 @@ int main()
     graph g(n,m);
     g.fill();
     for(int i = 0; i < n; i++) {
-        cout << "Node " << i << ": ";
+        cout << "Node " << char(i+65) << ": ";
         for(auto &edge : g.grh[i]) {
             cout << "(" << edge.first << "," << edge.second << ") ";
         }
