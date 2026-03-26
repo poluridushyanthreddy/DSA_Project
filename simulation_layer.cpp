@@ -37,7 +37,7 @@ void simulatepacket(packet &p){
     cout<<"Packet delivered to destination : "<<p.destination<<endl;
 }
 
-void simulatepacketwithdelay(packet &p, graph &g){  //add the graph to get the delay between nodes
+void simulatepacketwithdelay(packet &p, graph &g){  
     cout<<"\n--- Simulation with delay of---\n";
 
    for(int i=0;i<p.path.size();i++){
@@ -52,7 +52,7 @@ void simulatepacketwithdelay(packet &p, graph &g){  //add the graph to get the d
     p.current_node = v;
     p.total_time += delay;
     
-    // this_thread::sleep_for(chrono::milliseconds(500));
+    this_thread::sleep_for(chrono::milliseconds(500));
    }
 
    p.delivered = true;
