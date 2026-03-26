@@ -6,12 +6,23 @@ class graph
     public:
 
     int n,m;
-    vector<vector<pair<int,int>>> grh;
+    vector<vector<pair<char,int>>> grh;
     graph(int n,int m)
     {
         this->n=n;
         this->m=m;
         grh.resize(n);
+    }
+
+    void addrouter()
+    {
+        grh.resize(grh.size()+1);
+    }
+
+    void addedge(char a,char b,int c)
+    {
+        grh[a-65].push_back({b,c});
+        grh[b-65].push_back({a,c});
     }
     void fill()
     {
