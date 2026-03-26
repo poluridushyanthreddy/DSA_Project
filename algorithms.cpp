@@ -1,105 +1,48 @@
-#include "algorithms.h"
-#include "graph.h"
-#include <queue>
-#include <algorithm>
+#include<bits/stdc++.h>
+using namespace std;
 
-map<string,int> dijkstraShortestPath(Graph &g, string source, map<string,string> &parent) {
-    map<string,int> dist;
+map<char,int> dijkstra(graph &g, char src, map<char,char> &parent)
+{
+    map<char,int> distance;
 
-    for(auto &node : g.adj)
-        dist[node.first] = INT_MAX;
+    for(int i=0;i<g.n;i++)
+    {
+        char node=char(i + 65);
+        distance[node]=INT_MAX;
+    }
 
-    priority_queue<pair<int,string>, vector<pair<int,string>>, greater<pair<int,string>>> pq;
+    priority_queue<pair<int,char>,vector<pair<int,char>>,greater<pair<int,char>>>pq;
 
-    dist[source] = 0;
-    parent[source] = "";
-    pq.push({0, source});
+    distance[src]=0;
+    parent[src]='\0';
+    pq.push({0, src});
 
-    while(!pq.empty()) {
-        auto top = pq.top();
+    while(!pq.empty())
+    {
+        pair<int,char> current=pq.top();
         pq.pop();
 
-        int currDist = top.first;
-        string currNode = top.second;
+        int currDist=current.first;
+        char node=current.second;
 
-        if(currDist > dist[currNode]) continue;
+        if(currDist > distance[node])
+            continue;
 
-        for(auto &nbr : g.adj[currNode]) {
-            string next = nbr.first;
-            int w = nbr.second;
+        for(auto edge : g.grh[node - 65])
+        {
+            char nextNode=edge.first;
+            int weight=edge.second;
 
-            if(currDist + w < dist[next]) {
-                dist[next] = currDist + w;
-                parent[next] = currNode;
-                pq.push({dist[next], next});
+            int newDist=currDist + weight;
+
+            if(newDist < distance[nextNode])
+            {
+                distance[nextNode]=newDist;
+                parent[nextNode]=node;
+                pq.push({newDist,nextNode});
             }
         }
     }
 
-    return dist;
-}
-
-void printPath(string dest, map<string,string> &parent) {
-    if(dest == "") return;
-    printPath(parent[dest], parent);
-    cout << dest << " ";
-}
-
-int kruskalMST(Graph &g) {
-    vector<tuple<int,string,string>> edges;
-
-    for(auto &u : g.adj) {
-        for(auto &v : u.second) {
-            if(u.first < v.first)
-                edges.push_back({v.second, u.first, v.first});
-        }
-    }
-
-    sort(edges.begin(), edges.end());
-
-    map<string,string> parent;
-    map<string,int> rank;
-
-    for(auto &node : g.adj) {
-        parent[node.first] = node.first;
-        rank[node.first] = 0;
-    }
-
-    function<string(string)> findSet = [&](string x) {
-        if(parent[x] != x)
-            parent[x] = findSet(parent[x]);
-        return parent[x];
-    };
-
-    function<void(string,string)> unionSet = [&](string a, string b) {
-        string pa = findSet(a);
-        string pb = findSet(b);
-
-        if(pa == pb) return;
-
-        if(rank[pa] < rank[pb]) parent[pa] = pb;
-        else if(rank[pa] > rank[pb]) parent[pb] = pa;
-        else {
-            parent[pb] = pa;
-            rank[pa]++;
-        }
-    };
-
-    int totalCost = 0;
-
-    cout << "\nMST Edges:\n";
-
-    for(auto &e : edges) {
-        int w;
-        string u, v;
-        tie(w, u, v) = e;
-
-        if(findSet(u) != findSet(v)) {
-            unionSet(u, v);
-            totalCost += w;
-            cout << u << " - " << v << " : " << w << endl;
-        }
-    }
-
-    return totalCost;
+    return distance;
 }
