@@ -1,46 +1,59 @@
-#include <iostream>
-#include <vector>
-#include "graph.h"
-#include "dijkstra.h"
-#include "kruskal.h"
-#include "packet.h"
-
-using namespace std;
-
-
-void loadFromFile(Graph &g, string filename);
-
+#include "project.h"
 int main() {
-    Graph g;
+    int n, m;
+    cout << "Enter number of nodes and edges:\n";
+    cin >> n >> m;
 
-    
-    loadFromFile(g, "edges.txt");
+    graph g(n, m);
 
-    cout << "\nGraph Loaded:\n";
-    g.printGraph();
+    cout << "Enter edges (format: A B weight):\n";
+    g.fill();
 
-    // 🔹 Run Dijkstra
-    string source = "A";
-    string dest = "D";
+    cout << "\nGraph:\n";
+    g.print();
 
-    cout << "\nRunning Dijkstra...\n";
-    vector<string> path = dijkstra(g, source, dest);
+    char src, dest;
+    cout << "\nEnter source and destination:\n";
+    cin >> src >> dest;
 
-    cout << "Shortest Path: ";
-    for (auto node : path) {
-        cout << node << " ";
+    // Dijkstra
+    map<char, char> parent;
+    map<char, int> dist = dijkstra(g, src, parent);
+
+    // Check if reachable
+    if(dist[dest] == INT_MAX) {
+        cout << "No path exists\n";
+        return 0;
     }
-    cout << endl;
 
-    // 🔹 Run Kruskal
-    cout << "\nRunning Kruskal...\n";
-    kruskal(g);
+    // Reconstruct path
+    vector<char> path;
+    char cur = dest;
 
-    // 🔹 Packet Simulation
-    Packet p(source, dest);   
+    while(cur != '\0') {
+        path.push_back(cur);
+        cur = parent[cur];
+    }
 
-    cout << "\nSimulating Packet:\n";
-    simulatePacket(p);
+    reverse(path.begin(), path.end());
+
+    // Print path
+    cout << "\nShortest Path: ";
+    for(char c : path) cout << c << " ";
+    cout << "\nCost: " << dist[dest] << endl;
+
+    // Packet simulation
+    packet p(src, dest);
+    p.path = path;
+
+    simulatepacket(p);
+
+    // reset packet state for delay simulation
+    p.current_node = src;
+    p.total_time = 0;
+    p.delivered = false;
+
+    simulatepacketwithdelay(p, g);
 
     return 0;
 }

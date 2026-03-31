@@ -1,53 +1,49 @@
-#include <bits/stdc++.h>
+#include "project.h"
+#include <iostream>
 using namespace std;
 
-class graph
-{
-    public:
-
-    int n,m;
-    vector<vector<pair<char,int>>> grh;
-    graph(int n,int m)
-    {
-        this->n=n;
-        this->m=m;
-        grh.resize(n);
+// getWeight
+int graph::getWeight(char u, char v) {
+    for(auto &edge : grh[u - 'A']) {
+        if(edge.first == v)
+            return edge.second;
     }
-
-    void addrouter()
-    {
-        grh.resize(grh.size()+1);
-    }
-
-    void addedge(char a,char b,int c)
-    {
-        grh[a-65].push_back({b,c});
-        grh[b-65].push_back({a,c});
-    }
-    void fill()
-    {
-        for(int i=0;i<m;i++)
-        {
-            char a,b;int c;
-            cin>>a>>b>>c;
-            grh[a-65].push_back({b, c}); 
-            grh[b-65].push_back({a, c});
-        }
-    }
-};
-
-int main()
-{
-    int n,m;
-    cin>>n>>m;
-    graph g(n,m);
-    g.fill();
+    return INT_MAX;
+}
+graph::graph(int n, int m) {
+    this->n = n;
+    this->m = m;
+    grh.resize(n);
+}
+// print
+void graph::print() {
     for(int i = 0; i < n; i++) {
-        cout << "Node " << char(i+65) << ": ";
-        for(auto &edge : g.grh[i]) {
-            cout << "(" << edge.first << "," << edge.second << ") ";
+        char node = char(i + 'A');
+        cout << node << " -> ";
+
+        for(auto &edge : grh[i]) {
+            cout << "(" << edge.first << ", " << edge.second << ") ";
         }
-        cout << "\n";
+
+        cout << endl;
     }
-return 0;
+}
+
+// addedge
+void graph::addedge(char a, char b, int c) {
+    int u = a - 'A';
+    int v = b - 'A';
+
+    grh[u].push_back({b, c});
+    grh[v].push_back({a, c});
+}
+
+// fill
+void graph::fill() {
+    for(int i = 0; i < m; i++) {
+        char a, b;
+        int c;
+        cin >> a >> b >> c;
+        addedge(a, b, c);  // reuse function
+    }
 }
