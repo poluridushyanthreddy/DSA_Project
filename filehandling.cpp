@@ -1,7 +1,4 @@
 #include "project.h"
-#include <bits/stdc++.h>
-#include <fstream>
-using namespace std;
  
 void saveGraphToFile(graph &g, string filename)
 {

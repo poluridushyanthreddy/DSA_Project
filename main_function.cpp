@@ -1,7 +1,4 @@
 #include "project.h"
-#include "filehandling.cpp"
-#include <bits/stdc++.h>
-using namespace std;
  
 vector<string> buildPath(string src, string dest, map<string,string> &parent)
 {

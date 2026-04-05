@@ -1,6 +1,5 @@
 #include "project.h"
-#include <iostream>
-using namespace std;
+
 
 // getWeight
 int graph::getWeight(string u, string v) {

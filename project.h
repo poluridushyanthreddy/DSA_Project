@@ -47,5 +47,9 @@ public:
 void simulatepacket(packet &p);
 void simulatepacketwithdelay(packet &p, graph &g);
 
+void saveGraphToFile(graph &g, string filename);
+graph loadGraphFromFile(string filename);
+void logRouteToFile(string filename, string src, string dest, vector<string> path, int cost);
+void saveMSTToFile(string filename, int cost);
 #endif
 
