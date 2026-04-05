@@ -23,7 +23,7 @@ int main()
     int choice;
     do
     {
-        cout << "\n--- Menu ---\n";
+
         cout << "1. Enter Graph (nodes and edges)\n";
         cout << "2. Load Graph from File\n";
         cout << "3. Add Edge\n";
