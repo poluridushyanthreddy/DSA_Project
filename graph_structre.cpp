@@ -3,47 +3,69 @@
 using namespace std;
 
 // getWeight
-int graph::getWeight(char u, char v) {
-    for(auto &edge : grh[u - 'A']) {
-        if(edge.first == v)
-            return edge.second;
+int graph::getWeight(string u, string v) {
+    for(auto &edge : grh[u]) {
+        if(edge.first == v) return edge.second;
     }
     return INT_MAX;
 }
 graph::graph(int n, int m) {
     this->n = n;
     this->m = m;
-    grh.resize(n);
 }
-// print
-void graph::print() {
-    for(int i = 0; i < n; i++) {
-        char node = char(i + 'A');
-        cout << node << " -> ";
-
-        for(auto &edge : grh[i]) {
-            cout << "(" << edge.first << ", " << edge.second << ") ";
-        }
-
-        cout << endl;
+vector<pair<string,int>> graph::getNeighbours(string Node)
+{
+    return grh[Node];
+} 
+vector<string> graph::getNodes()
+{
+    vector<string> nodes;
+    for(auto &edge:grh)
+    {
+        nodes.push_back(edge.first);
     }
+    return nodes;
 }
 
+vector<tuple<string,string,int>> graph::getAllEdges()
+{
+    vector<tuple<string,string,int>> edges;
+    for(auto &edge:grh)
+    {
+        string u = edge.first;
+        for(auto e:edge.second)
+        {
+            string v = e.first;
+            int w = e.second;
+            if(u<v)
+            edges.push_back({u,v,w});
+        }
+    }
+    return edges;
+}
+
+void graph::print() {
+    for(auto &edge:grh)
+    {
+        cout<<"Node ->"<<edge.first;
+        for(auto e:edge.second)
+        {
+            cout<<" ("<<e.first<<" , "<<e.second<<") ";
+        }
+        cout<<endl;
+}
+}
 // addedge
-void graph::addedge(char a, char b, int c) {
-    int u = a - 'A';
-    int v = b - 'A';
-
-    grh[u].push_back({b, c});
-    grh[v].push_back({a, c});
+void graph::addedge(string a, string  b, int c) {
+    grh[a].push_back({b, c});
+    grh[b].push_back({a, c});
 }
-
 // fill
 void graph::fill() {
-    for(int i = 0; i < m; i++) {
-        char a, b;
+    for(int i=0; i<m; i++) {
+        string a,b;
         int c;
-        cin >> a >> b >> c;
-        addedge(a, b, c);  // reuse function
+        cin>>a>>b>>c;
+        addedge(a,b,c);
     }
 }
