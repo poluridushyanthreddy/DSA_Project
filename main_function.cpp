@@ -113,9 +113,9 @@ int main()
             else
             {
                 vector<string> path = buildPath(src, dest, parent);
-                packet p(src[0], dest[0]);
+                packet p(src, dest);
                 for(auto node : path)
-                    p.path.push_back(node[0]);
+                    p.path.push_back(node);
                 simulatepacket(p);
             }
         }
@@ -137,9 +137,9 @@ int main()
             else
             {
                 vector<string> path = buildPath(src, dest, parent);
-                packet p(src[0], dest[0]);
+                packet p(src, dest);
                 for(auto node : path)
-                    p.path.push_back(node[0]);
+                    p.path.push_back(node);
                 simulatepacketwithdelay(p, g);
             }
         }
