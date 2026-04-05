@@ -33,13 +33,13 @@ int kruskalMST(graph &g);
 
 class packet {
 public:
-    char source;
-    char destination;
-    char current_node;
-    vector<char> path;
+    string source;
+    string destination;
+    string current_node;
+    vector<string> path;
     int total_time;
     bool delivered;
-    packet(char s, char d);
+    packet(string s, string d);
 };
 
 // -------- SIMULATION --------
@@ -48,7 +48,4 @@ void simulatepacket(packet &p);
 void simulatepacketwithdelay(packet &p, graph &g);
 
 #endif
-void simulatepacket(packet &p);
-void simulatepacketwithdelay(packet &p, graph &g);
 
-#endif
