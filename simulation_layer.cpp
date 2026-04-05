@@ -3,7 +3,7 @@
 void simulatepacket(packet &p) {
     cout << "\n-- Simulation without delay --\n";
 
-    for(char node : p.path) {
+    for(string node : p.path) {
         p.current_node = node;
         cout << "Packet at node: " << node << endl;
     }
@@ -11,7 +11,8 @@ void simulatepacket(packet &p) {
     p.delivered = true;
     cout << "Packet delivered to destination: " << p.destination << endl;
 }
-packet::packet(char s, char d) {
+
+packet::packet(string s, string d) {
     source = s;
     destination = d;
     current_node = s;
@@ -23,8 +24,8 @@ void simulatepacketwithdelay(packet &p, graph &g) {
     cout << "\n-- Simulation with delay --\n";
 
     for(int i = 0; i < p.path.size() - 1; i++) {
-        char u = p.path[i];
-        char v = p.path[i + 1];
+        string u = p.path[i];
+        string v = p.path[i + 1];
 
         int delay = g.getWeight(u, v);
 
