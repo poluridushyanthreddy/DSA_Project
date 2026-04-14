@@ -44,16 +44,16 @@ This project is a **Data Structures & Algorithms based Graph Simulator and Visua
 
 
 ## Project Structure
-algorithms.cpp # Dijkstra & Kruskal implementation
-graph_structre.cpp # Graph class implementation
-simulation_layer.cpp # Packet simulation logic
-filehandling.cpp # File I/O operations
-main_function.cpp # CLI + API command handler
-project.h # Header file (all declarations)
-server.py # Flask backend server
-gui.html # Frontend visualization UI
-graph.txt # Sample graph input
-README.md # Project documentation
+- algorithms.cpp (Dijkstra & Kruskal implementation)
+- graph_structre.cpp (Graph class implementation)
+- simulation_layer.cpp (Packet simulation logic)
+- filehandling.cpp (File I/O operations)
+- main_function.cpp (CLI + API command handler)
+- project.h (Header file)
+- server.py (Flask backend server)
+- gui.html (Frontend visualization UI)
+- graph.txt (Sample graph input)
+- README.md (Project documentation)
 
 
 ## How It Works
@@ -81,6 +81,7 @@ README.md # Project documentation
 
 
 ## Sample Input (graph.txt)
+'''
 9
 A B 5
 A E 1
@@ -91,32 +92,31 @@ B D 5
 C E 10
 D E 10
 F G 3
-
+'''
 
 ## How to Run
 
 ### Step 1: Compile C++ Code
-g++ main_function.cpp algorithms.cpp graph_structre.cpp filehandling.cpp simulation_layer.cpp -o sim.exe
+- g++ main_function.cpp algorithms.cpp graph_structre.cpp filehandling.cpp simulation_layer.cpp -o sim.exe
 ### Step 2: Run Backend Server
-python server.py
+- python server.py
 ### Step 3: Open GUI
-http://localhost:8080
+- http://localhost:8080
 
-### Functionalities via CLI
-The C++ program supports:
+## Functionalities via CLI
+- The C++ program supports:
+-- init → Initialize graph
+-- addnode <node>
+-- addedge <a> <b> <w>
+-- dijkstra <src> <dst>
+-- mst
+-- getnodes
+-- getedges
 
-init → Initialize graph
-addnode <node>
-addedge <a> <b> <w>
-dijkstra <src> <dst>
-mst
-getnodes
-getedges
+### (Handled in main_function.cpp)
 
-(Handled in main_function.cpp)
-
-### Tech Stack
-C++ → Core algorithms
-Python (Flask) → Backend API
-HTML/CSS/JS → Frontend visualization
+## Tech Stack
+- C++ → Core algorithms
+- Python (Flask) → Backend API
+- HTML/CSS/JS → Frontend visualization
 
