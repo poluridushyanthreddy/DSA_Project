@@ -54,6 +54,13 @@ void graph::print() {
         cout<<endl;
 }
 }
+//add node
+void graph::addnode(string a)
+ {
+    if(grh.find(a) == grh.end()) {
+        grh[a] = {};  // 
+    }
+}
 // addedge
 void graph::addedge(string a, string  b, int c) {
     grh[a].push_back({b, c});

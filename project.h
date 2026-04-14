@@ -13,6 +13,7 @@ public:
     graph(int n, int m);
     void addedge(string a, string b, int c);
     void fill();
+    void addnode(string a);
     void print();
     int getWeight(string u, string v);
     vector<pair<string,int>> getNeighbours(string node);

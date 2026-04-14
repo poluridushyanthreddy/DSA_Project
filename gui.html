@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DSA Graph Visualizer</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #0f0f0f; color: #e0e0e0; height: 100vh; display: flex; flex-direction: column; }
+
+  header { background: #1a1a1a; border-bottom: 1px solid #2a2a2a; padding: 12px 20px; display: flex; align-items: center; gap: 16px; }
+  header h1 { font-size: 16px; font-weight: 600; color: #fff; letter-spacing: 0.5px; }
+  header span { font-size: 12px; color: #555; }
+  #status-dot { width: 8px; height: 8px; border-radius: 50%; background: #f00; margin-left: auto; }
+  #status-dot.connected { background: #0f0; }
+  #status-text { font-size: 12px; color: #555; }
+
+  .main { display: flex; flex: 1; overflow: hidden; }
+
+  /* LEFT PANEL */
+  .sidebar { width: 280px; background: #141414; border-right: 1px solid #2a2a2a; display: flex; flex-direction: column; overflow-y: auto; }
+  .section { border-bottom: 1px solid #1e1e1e; padding: 14px 16px; }
+  .section-title { font-size: 11px; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+
+  input[type=text], input[type=number], select {
+    width: 100%; padding: 7px 10px; background: #1e1e1e; border: 1px solid #2a2a2a;
+    border-radius: 6px; color: #e0e0e0; font-size: 13px; margin-bottom: 6px; outline: none;
+  }
+  input:focus, select:focus { border-color: #444; }
+
+  .row { display: flex; gap: 6px; }
+  .row input { flex: 1; }
+
+  button {
+    width: 100%; padding: 7px 12px; border-radius: 6px; border: 1px solid #2a2a2a;
+    font-size: 13px; cursor: pointer; font-family: inherit; transition: all 0.15s;
+  }
+  button.primary { background: #5a4fcf; color: #fff; border-color: #5a4fcf; margin-bottom: 6px; }
+  button.primary:hover { background: #6b5fe0; }
+  button.secondary { background: #1e1e1e; color: #ccc; margin-bottom: 6px; }
+  button.secondary:hover { background: #2a2a2a; }
+  button.danger { background: #1e1e1e; color: #e05555; border-color: #3a2020; margin-bottom: 6px; }
+  button.danger:hover { background: #2a1a1a; }
+  button.success { background: #1a2e1a; color: #4caf50; border-color: #1e3a1e; margin-bottom: 6px; }
+  button.success:hover { background: #1e3a1e; }
+  button.warn { background: #2a2010; color: #f0a030; border-color: #3a2e10; margin-bottom: 6px; }
+  button.warn:hover { background: #3a2e10; }
+
+  .msg-box { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 6px; padding: 8px 10px; font-size: 12px; color: #888; min-height: 36px; margin-top: 4px; line-height: 1.5; }
+  .msg-box.ok { color: #4caf50; border-color: #1e3a1e; }
+  .msg-box.err { color: #e05555; border-color: #3a2020; }
+  .msg-box.info { color: #5a9fd4; border-color: #1a2a3a; }
+
+  .edge-item { display: flex; justify-content: space-between; align-items: center; padding: 4px 6px; border-radius: 4px; font-size: 12px; color: #888; }
+  .edge-item:hover { background: #1e1e1e; }
+  .edge-item span { color: #ccc; }
+  .edge-del { background: none; border: none; color: #555; cursor: pointer; font-size: 14px; width: auto; padding: 0 4px; margin: 0; }
+  .edge-del:hover { color: #e05555; }
+
+  /* CANVAS */
+  .canvas-wrap { flex: 1; position: relative; overflow: hidden; background: #0a0a0a; }
+  canvas { position: absolute; inset: 0; }
+
+  /* RESULT OVERLAY */
+  #result-bar { position: absolute; bottom: 0; left: 0; right: 0; background: #141414cc; backdrop-filter: blur(4px); border-top: 1px solid #2a2a2a; padding: 10px 16px; font-size: 13px; display: none; }
+  #result-bar.show { display: block; }
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+  .badge-path { background: #2a2010; color: #f0a030; }
+  .badge-mst { background: #1a2e1a; color: #4caf50; }
+  .badge-cost { background: #1a1a2e; color: #7a7aff; }
+
+  /* Node list */
+  .node-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+  .chip { background: #1e1e1e; border: 1px solid #2a2a2a; border-radius: 999px; padding: 3px 10px; font-size: 12px; color: #aaa; cursor: pointer; }
+  .chip:hover { border-color: #5a4fcf; color: #fff; }
+  .chip.selected { background: #2a2050; border-color: #5a4fcf; color: #fff; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>DSA Graph Visualizer</h1>
+  <span>Your C++ code runs every operation</span>
+  <div id="status-dot"></div>
+  <span id="status-text">Connecting...</span>
+</header>
+
+<div class="main">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+
+    <div class="section">
+      <div class="section-title">Graph Control</div>
+      <button class="danger" onclick="initGraph()">New Graph (Reset)</button>
+      <button class="secondary" onclick="loadGraph()">Reload from File</button>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Add Node</div>
+      <input type="text" id="nodeName" placeholder="Node name (e.g. A)" maxlength="10">
+      <button class="primary" onclick="addNode()">Add Node</button>
+      <div class="node-chips" id="nodeChips"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Add Edge</div>
+      <div class="row">
+        <input type="text" id="edgeA" placeholder="From">
+        <input type="text" id="edgeB" placeholder="To">
+      </div>
+      <input type="number" id="edgeW" placeholder="Weight" value="1" min="1">
+      <button class="primary" onclick="addEdge()">Add Edge</button>
+      <div id="edgeList" style="margin-top:6px"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Shortest Path (Dijkstra)</div>
+      <select id="srcSel"><option value="">-- Source --</option></select>
+      <select id="dstSel"><option value="">-- Destination --</option></select>
+      <button class="warn" onclick="runDijkstra()">Run Dijkstra</button>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Minimum Spanning Tree</div>
+      <button class="success" onclick="runMST()">Run Kruskal MST</button>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Log</div>
+      <div class="msg-box" id="msgBox">Ready.</div>
+    </div>
+
+  </div>
+
+  <!-- CANVAS -->
+  <div class="canvas-wrap" id="canvasWrap">
+    <canvas id="canvas"></canvas>
+    <div id="result-bar"></div>
+  </div>
+
+</div>
+
+<script>
+const API = 'http://localhost:8080';
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const wrap = document.getElementById('canvasWrap');
+
+let nodes = {};   // name -> {x, y}
+let edges = [];   // {a, b, w}
+let pathEdges = new Set();
+let mstEdges = new Set();
+let pathNodes = new Set();
+let dragging = null, dragOff = {x:0,y:0};
+let selectedChip = null;
+
+// ── RESIZE ──
+function resize() {
+  canvas.width = wrap.clientWidth;
+  canvas.height = wrap.clientHeight;
+  draw();
+}
+window.addEventListener('resize', resize);
+resize();
+
+// ── API HELPERS ──
+async function api(method, path, body) {
+  try {
+    const res = await fetch(API + path, {
+      method,
+      headers: body ? {'Content-Type':'application/json'} : {},
+      body: body ? JSON.stringify(body) : undefined
+    });
+    return await res.json();
+  } catch(e) {
+    setMsg('Cannot reach server. Is server.py running?', 'err');
+    return null;
+  }
+}
+
+// ── STATUS CHECK ──
+async function checkStatus() {
+  try {
+    await fetch(API + '/getnodes');
+    document.getElementById('status-dot').classList.add('connected');
+    document.getElementById('status-text').textContent = 'Connected';
+  } catch(e) {
+    document.getElementById('status-dot').classList.remove('connected');
+    document.getElementById('status-text').textContent = 'Server offline';
+  }
+}
+checkStatus();
+setInterval(checkStatus, 5000);
+
+// ── GRAPH OPS ──
+async function initGraph() {
+  const r = await api('POST', '/init');
+  if(!r) return;
+  nodes = {}; edges = []; clearHighlight();
+  setMsg('Graph reset.', 'ok');
+  refreshUI();
+}
+
+async function loadGraph() {
+  clearHighlight();
+  const rn = await api('GET', '/getnodes');
+  const re = await api('GET', '/getedges');
+  if(!rn || !re) return;
+
+  // keep positions of existing nodes, lay out new ones
+  const existing = {...nodes};
+  nodes = {};
+  rn.nodes.forEach(n => {
+    if(existing[n]) nodes[n] = existing[n];
+    else nodes[n] = randomPos();
+  });
+  edges = re.edges;
+  refreshUI();
+  draw();
+  setMsg(`Loaded ${rn.nodes.length} nodes, ${re.edges.length} edges from your C++ graph.txt`, 'ok');
+}
+
+async function addNode() {
+  const name = document.getElementById('nodeName').value.trim();
+  if(!name) { setMsg('Enter a node name.', 'err'); return; }
+  if(nodes[name]) { setMsg(`Node "${name}" already exists.`, 'err'); return; }
+  const r = await api('POST', '/addnode', {node: name});
+  if(!r) return;
+  if(r.success) {
+    nodes[name] = randomPos();
+    document.getElementById('nodeName').value = '';
+    refreshUI(); draw();
+    setMsg(`addnode("${name}") called in your C++. Node added!`, 'ok');
+  } else {
+    setMsg('Failed to add node.', 'err');
+  }
+}
+
+async function addEdge() {
+  const a = document.getElementById('edgeA').value.trim();
+  const b = document.getElementById('edgeB').value.trim();
+  const w = parseInt(document.getElementById('edgeW').value) || 1;
+  if(!a || !b) { setMsg('Enter both node names.', 'err'); return; }
+  if(a === b) { setMsg('Cannot add self-loop.', 'err'); return; }
+  if(!nodes[a]) { setMsg(`Node "${a}" not in graph. Add it first.`, 'err'); return; }
+  if(!nodes[b]) { setMsg(`Node "${b}" not in graph. Add it first.`, 'err'); return; }
+  const exists = edges.some(e=>(e.a===a&&e.b===b)||(e.a===b&&e.b===a));
+  if(exists) { setMsg('Edge already exists.', 'err'); return; }
+  const r = await api('POST', '/addedge', {a, b, w});
+  if(!r) return;
+  if(r.success) {
+    edges.push({a, b, w});
+    document.getElementById('edgeA').value = '';
+    document.getElementById('edgeB').value = '';
+    refreshUI(); draw();
+    setMsg(`addedge("${a}", "${b}", ${w}) called in your C++. Edge added!`, 'ok');
+  } else {
+    setMsg('Failed to add edge.', 'err');
+  }
+}
+
+async function runDijkstra() {
+  clearHighlight();
+  const src = document.getElementById('srcSel').value;
+  const dst = document.getElementById('dstSel').value;
+  if(!src || !dst) { setMsg('Select source and destination.', 'err'); return; }
+  setMsg('Running dijkstra() from your C++...', 'info');
+  const r = await api('POST', '/dijkstra', {src, dst});
+  if(!r) return;
+  if(!r.success) { setMsg(r.message || 'No path found.', 'err'); return; }
+  // highlight path
+  r.path.forEach(n => pathNodes.add(n));
+  for(let i = 0; i < r.path.length - 1; i++) {
+    pathEdges.add(eKey(r.path[i], r.path[i+1]));
+  }
+  draw();
+  showResult(`<span class="badge badge-path">PATH</span> &nbsp;${r.path.join(' → ')}&nbsp;&nbsp;<span class="badge badge-cost">Cost: ${r.cost}</span>`);
+  setMsg(`dijkstra() returned: ${r.path.join(' → ')} | Cost: ${r.cost}`, 'ok');
+}
+
+async function runMST() {
+    clearHighlight();
+    setMsg('Running kruskalMST() from your C++...', 'info');
+    const r = await api('POST', '/mst');
+    if(!r) return;
+    if(!r.success) { setMsg(r.message || 'MST failed.', 'err'); return; }
+    // only highlight actual MST edges
+    r.edges.forEach(e => mstEdges.add(eKey(e.a, e.b)));
+    draw();
+    showResult(`<span class="badge badge-mst">MST</span> &nbsp;Kruskal MST cost: &nbsp;<span class="badge badge-cost">${r.cost}</span>`);
+    setMsg(`kruskalMST() returned cost: ${r.cost}`, 'ok');
+}
+
+// ── UI HELPERS ──
+function refreshUI() {
+  // node chips
+  const chips = document.getElementById('nodeChips');
+  chips.innerHTML = Object.keys(nodes).map(n =>
+    `<div class="chip ${selectedChip===n?'selected':''}" onclick="selectChip('${n}')">${n}</div>`
+  ).join('');
+
+  // selects
+  const ns = Object.keys(nodes);
+  ['srcSel','dstSel'].forEach(id => {
+    const sel = document.getElementById(id);
+    const prev = sel.value;
+    sel.innerHTML = '<option value="">-- Select --</option>' +
+      ns.map(n => `<option value="${n}" ${prev===n?'selected':''}>${n}</option>`).join('');
+  });
+
+  // edge list
+  document.getElementById('edgeList').innerHTML = edges.map((e,i) =>
+    `<div class="edge-item"><span>${e.a} ↔ ${e.b}</span><span style="color:#555;margin:0 6px">w=${e.w}</span></div>`
+  ).join('') || '<div style="font-size:12px;color:#444;padding:4px 0">No edges yet.</div>';
+}
+
+function selectChip(name) {
+  selectedChip = selectedChip === name ? null : name;
+  const edgeA = document.getElementById('edgeA');
+  const edgeB = document.getElementById('edgeB');
+  if(!edgeA.value) edgeA.value = name;
+  else if(!edgeB.value && edgeA.value !== name) edgeB.value = name;
+  else { edgeA.value = name; edgeB.value = ''; }
+  refreshUI();
+}
+
+function setMsg(txt, type='') {
+  const el = document.getElementById('msgBox');
+  el.textContent = txt;
+  el.className = 'msg-box' + (type ? ' '+type : '');
+}
+
+function showResult(html) {
+  const bar = document.getElementById('result-bar');
+  bar.innerHTML = html;
+  bar.classList.add('show');
+}
+
+function clearHighlight() {
+  pathEdges = new Set(); mstEdges = new Set(); pathNodes = new Set();
+  document.getElementById('result-bar').classList.remove('show');
+  draw();
+}
+
+function eKey(a, b) { return [a,b].sort().join('||'); }
+
+function randomPos() {
+  return {
+    x: 80 + Math.random() * (canvas.width - 160),
+    y: 60 + Math.random() * (canvas.height - 120)
+  };
+}
+
+// ── DRAW ──
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // draw edges
+  edges.forEach(e => {
+    if(!nodes[e.a] || !nodes[e.b]) return;
+    const key = eKey(e.a, e.b);
+    const isPath = pathEdges.has(key);
+    const isMST = mstEdges.has(key);
+    const {x:x1,y:y1} = nodes[e.a];
+    const {x:x2,y:y2} = nodes[e.b];
+
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+
+    if(isPath) {
+      ctx.strokeStyle = '#f0a030';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([8,4]);
+    } else if(isMST) {
+      ctx.strokeStyle = '#4caf50';
+      ctx.lineWidth = 2.5;
+      ctx.setLineDash([]);
+    } else {
+      ctx.strokeStyle = '#2a2a2a';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([]);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // weight label
+    const mx = (x1+x2)/2, my = (y1+y2)/2;
+    ctx.fillStyle = isPath ? '#f0a030' : isMST ? '#4caf50' : '#444';
+    ctx.font = '11px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText(e.w, mx, my - 6);
+  });
+
+  // draw nodes
+  Object.entries(nodes).forEach(([name, pos]) => {
+    const isPath = pathNodes.has(name);
+    const r = 18;
+
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, r, 0, Math.PI*2);
+    if(isPath) {
+      ctx.fillStyle = '#3a2e10';
+      ctx.strokeStyle = '#f0a030';
+      ctx.lineWidth = 2;
+    } else {
+      ctx.fillStyle = '#1e1a3a';
+      ctx.strokeStyle = '#5a4fcf';
+      ctx.lineWidth = 1.5;
+    }
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = isPath ? '#f0a030' : '#ccc';
+    ctx.font = '500 13px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(name, pos.x, pos.y);
+  });
+}
+
+// ── DRAG ──
+canvas.addEventListener('mousedown', e => {
+  const pos = canvasPos(e);
+  for(const [name, p] of Object.entries(nodes)) {
+    if(Math.hypot(pos.x-p.x, pos.y-p.y) < 20) {
+      dragging = name;
+      dragOff = {x: pos.x-p.x, y: pos.y-p.y};
+      return;
+    }
+  }
+});
+canvas.addEventListener('mousemove', e => {
+  if(!dragging) return;
+  const pos = canvasPos(e);
+  nodes[dragging].x = Math.max(20, Math.min(canvas.width-20, pos.x-dragOff.x));
+  nodes[dragging].y = Math.max(20, Math.min(canvas.height-20, pos.y-dragOff.y));
+  draw();
+});
+canvas.addEventListener('mouseup', () => { dragging = null; });
+canvas.addEventListener('mouseleave', () => { dragging = null; });
+
+function canvasPos(e) {
+  const r = canvas.getBoundingClientRect();
+  return {x: e.clientX-r.left, y: e.clientY-r.top};
+}
+
+// ── INIT ──
+loadGraph();
+</script>
+</body>
+</html>
