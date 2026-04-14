@@ -20,12 +20,12 @@ This project is a **Data Structures & Algorithms based Graph Simulator and Visua
 
 ### Graph Operations
 - Add nodes and edges dynamically  
-- Load/save graph from file (`graph.txt`)  
+- Load/save graph from file (graph.txt)  
 - View graph structure  
 
 ### Algorithms Implemented
-- **Dijkstra’s Algorithm** for shortest path  
-- **Kruskal’s Algorithm** for Minimum Spanning Tree  
+- Dijkstra’s Algorithm - for shortest path(assuming non-negativeweights)
+- Kruskal’s Algorithm - for Minimum Spanning Tree  
 
 ### Simulation
 - Packet traversal without delay  
@@ -36,7 +36,7 @@ This project is a **Data Structures & Algorithms based Graph Simulator and Visua
 - Highlights:
   - Shortest path  
   - MST edges  
-- Drag-and-drop nodes  
+- Creation and deletion of nodes  
 
 ### Backend Integration
 - Flask API connects frontend with compiled C++ executable  
@@ -46,8 +46,8 @@ This project is a **Data Structures & Algorithms based Graph Simulator and Visua
 ## Project Structure
 - algorithms.cpp (Dijkstra & Kruskal implementation)
 - graph_structre.cpp (Graph class implementation)
-- simulation_layer.cpp (Packet simulation logic)
-- filehandling.cpp (File I/O operations)
+- simulation_layer.cpp (Defined Packet and simulation of packet)
+- filehandling.cpp (File Input/Output operations)
 - main_function.cpp (CLI + API command handler)
 - project.h (Header file)
 - server.py (Flask backend server)
