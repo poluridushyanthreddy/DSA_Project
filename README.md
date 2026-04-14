@@ -80,19 +80,6 @@ This project is a **Data Structures & Algorithms based Graph Simulator and Visua
 - Builds MST with minimum cost  
 
 
-## Sample Input (graph.txt)
-'''
-9
-A B 5
-A E 1
-A C 1
-A F 6
-B C 3
-B D 5
-C E 10
-D E 10
-F G 3
-'''
 
 ## How to Run
 
@@ -104,14 +91,14 @@ F G 3
 - http://localhost:8080
 
 ## Functionalities via CLI
-- The C++ program supports:
--- init → Initialize graph
--- addnode <node>
--- addedge <a> <b> <w>
--- dijkstra <src> <dst>
--- mst
--- getnodes
--- getedges
+### The C++ program supports:
+- init → Initialize graph
+- addnode <node>
+- addedge <a> <b> <w>
+- dijkstra <src> <dst>
+- mst
+- getnodes
+- getedges
 
 ### (Handled in main_function.cpp)
 
