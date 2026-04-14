@@ -90,12 +90,11 @@ This project is a **Data Structures & Algorithms based Graph Simulator and Visua
 ### Step 3: Open GUI
 - http://localhost:8080
 
-## Functionalities via CLI
 ### The C++ program supports:
 - init → Initialize graph
-- addnode <node>
-- addedge <a> <b> <w>
-- dijkstra <src> <dst>
+- addnode
+- addedge
+- dijkstra
 - mst
 - getnodes
 - getedges
