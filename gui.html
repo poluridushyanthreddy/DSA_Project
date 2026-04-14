@@ -74,6 +74,33 @@
   .chip { background: #1e1e1e; border: 1px solid #2a2a2a; border-radius: 999px; padding: 3px 10px; font-size: 12px; color: #aaa; cursor: pointer; }
   .chip:hover { border-color: #5a4fcf; color: #fff; }
   .chip.selected { background: #2a2050; border-color: #5a4fcf; color: #fff; }
+
+  button.simulate { background: #1a2535; color: #5a9fd4; border-color: #1e3a55; margin-bottom: 6px; }
+  button.simulate:hover { background: #1e3a55; }
+  button.simulate:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  #sim-status {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+    font-size: 12px;
+    color: #5a9fd4;
+  }
+  #sim-status.show { display: flex; }
+  #sim-dot-label { flex: 1; }
+  .pulse-ring {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #5a9fd4;
+    box-shadow: 0 0 0 0 rgba(90,159,212,0.7);
+    animation: pulse 1s infinite;
+    flex-shrink: 0;
+  }
+  @keyframes pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(90,159,212,0.7); }
+    70%  { box-shadow: 0 0 0 6px rgba(90,159,212,0); }
+    100% { box-shadow: 0 0 0 0 rgba(90,159,212,0); }
+  }
 </style>
 </head>
 <body>
@@ -119,6 +146,11 @@
       <select id="srcSel"><option value="">-- Source --</option></select>
       <select id="dstSel"><option value="">-- Destination --</option></select>
       <button class="warn" onclick="runDijkstra()">Run Dijkstra</button>
+      <button class="simulate" id="simBtn" onclick="simulatePacket()" disabled>▶ Simulate Packet</button>
+      <div id="sim-status">
+        <div class="pulse-ring"></div>
+        <span id="sim-dot-label">Packet at: —</span>
+      </div>
     </div>
 
     <div class="section">
@@ -154,6 +186,10 @@ let mstEdges = new Set();
 let pathNodes = new Set();
 let dragging = null, dragOff = {x:0,y:0};
 let selectedChip = null;
+let lastPath = [];
+let simRunning = false;
+let packetPos = null;
+let animFrameId = null;
 
 // ── RESIZE ──
 function resize() {
@@ -270,6 +306,8 @@ async function runDijkstra() {
   if(!r) return;
   if(!r.success) { setMsg(r.message || 'No path found.', 'err'); return; }
   // highlight path
+  lastPath = r.path;
+  document.getElementById('simBtn').disabled = false;
   r.path.forEach(n => pathNodes.add(n));
   for(let i = 0; i < r.path.length - 1; i++) {
     pathEdges.add(eKey(r.path[i], r.path[i+1]));
@@ -339,6 +377,9 @@ function showResult(html) {
 
 function clearHighlight() {
   pathEdges = new Set(); mstEdges = new Set(); pathNodes = new Set();
+  lastPath = [];
+  document.getElementById('simBtn').disabled = true;
+  document.getElementById('sim-status').classList.remove('show');
   document.getElementById('result-bar').classList.remove('show');
   draw();
 }
@@ -350,6 +391,73 @@ function randomPos() {
     x: 80 + Math.random() * (canvas.width - 160),
     y: 60 + Math.random() * (canvas.height - 120)
   };
+}
+
+// ── PACKET SIMULATION ──
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function simulatePacket() {
+  if(simRunning || lastPath.length < 2) return;
+  simRunning = true;
+
+  const btn = document.getElementById('simBtn');
+  const statusEl = document.getElementById('sim-status');
+  const labelEl = document.getElementById('sim-dot-label');
+
+  btn.disabled = true;
+  statusEl.classList.add('show');
+
+  // find edge weight between two nodes
+  function edgeWeight(a, b) {
+    const e = edges.find(e => (e.a===a&&e.b===b)||(e.a===b&&e.b===a));
+    return e ? e.w : 1;
+  }
+
+  for(let i = 0; i < lastPath.length - 1; i++) {
+    const fromNode = lastPath[i];
+    const toNode   = lastPath[i + 1];
+    const from = nodes[fromNode];
+    const to   = nodes[toNode];
+    const w    = edgeWeight(fromNode, toNode);
+
+    labelEl.textContent = `Packet: ${fromNode} → ${toNode}  (w=${w})`;
+    setMsg(`Packet moving: ${fromNode} → ${toNode} | edge weight: ${w}`, 'info');
+
+    // animate along this edge — duration scaled by weight (min 400ms, max 1800ms)
+    const duration = Math.min(400 + w * 60, 1800);
+    const start = performance.now();
+
+    await new Promise(resolve => {
+      function step(now) {
+        const t = Math.min((now - start) / duration, 1);
+        // ease in-out
+        const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+        packetPos = {
+          x: from.x + (to.x - from.x) * ease,
+          y: from.y + (to.y - from.y) * ease
+        };
+        draw();
+        if(t < 1) animFrameId = requestAnimationFrame(step);
+        else resolve();
+      }
+      animFrameId = requestAnimationFrame(step);
+    });
+
+    // brief pause at each node
+    packetPos = {x: to.x, y: to.y};
+    draw();
+    await sleep(180);
+  }
+
+  labelEl.textContent = `✓ Delivered to ${lastPath[lastPath.length-1]}`;
+  setMsg(`Packet delivered to ${lastPath[lastPath.length-1]}!`, 'ok');
+
+  await sleep(1200);
+  packetPos = null;
+  draw();
+  statusEl.classList.remove('show');
+  btn.disabled = false;
+  simRunning = false;
 }
 
 // ── DRAW ──
@@ -418,6 +526,27 @@ function draw() {
     ctx.textBaseline = 'middle';
     ctx.fillText(name, pos.x, pos.y);
   });
+
+  // draw animated packet
+  if(packetPos) {
+    // outer glow
+    const grd = ctx.createRadialGradient(packetPos.x, packetPos.y, 2, packetPos.x, packetPos.y, 18);
+    grd.addColorStop(0, 'rgba(90,159,212,0.5)');
+    grd.addColorStop(1, 'rgba(90,159,212,0)');
+    ctx.beginPath();
+    ctx.arc(packetPos.x, packetPos.y, 18, 0, Math.PI*2);
+    ctx.fillStyle = grd;
+    ctx.fill();
+
+    // core dot
+    ctx.beginPath();
+    ctx.arc(packetPos.x, packetPos.y, 7, 0, Math.PI*2);
+    ctx.fillStyle = '#5a9fd4';
+    ctx.shadowColor = '#5a9fd4';
+    ctx.shadowBlur = 12;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
 }
 
 // ── DRAG ──
