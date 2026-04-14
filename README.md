@@ -90,7 +90,7 @@ This project is a **Data Structures & Algorithms based Graph Simulator and Visua
 ### Step 3: Open GUI
 - http://localhost:8080
 
-### The C++ program supports:
+## The C++ program supports:
 - init → Initialize graph
 - addnode
 - addedge
